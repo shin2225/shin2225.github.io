@@ -1,0 +1,50 @@
+/* 全体の設定 */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000; /* 背景を黒に */
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace; /* 少しドット絵っぽいフォント */
+  overflow-x: hidden;
+}
+
+/* 都会の背景エリア */
+.city-background {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 300px;
+  background-color: #050505;
+  z-index: -1;
+  /* ここにドット絵の画像があれば、url('画像名') で指定できるにょ */
+  border-top: 2px solid #222;
+}
+
+/* ビルの窓の光をCSSで作る（簡易ドット絵風） */
+.window {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: #ff0;
+  box-shadow: 0 0 5px #ff0;
+  border-radius: 1px;
+}
+
+/* 点滅アニメーション */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* 違うタイミングで光るように複数用意 */
+.blink-fast { animation: blink 0.8s infinite; }
+.blink-slow { animation: blink 2s infinite; }
+
+/* コンテンツのレイアウト */
+header, section {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7); /* 後ろを少し透かす */
+  border: 1px solid #333;
+}
