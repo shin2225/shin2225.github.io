@@ -1,29 +1,49 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>shinneko22s website</title>
-  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <div class="city-background">
-    <div class="window blink-fast" style="bottom: 50px; left: 10%;"></div>
-    <div class="window blink-slow" style="bottom: 80px; left: 15%;"></div>
-    <div class="window blink-fast" style="bottom: 40px; left: 25%;"></div>
-    <div class="window blink-slow" style="bottom: 120px; left: 40%;"></div>
+  <div class="sky" aria-hidden="true">
+    <div class="stars" id="stars"></div>
+    <div class="moon"></div>
   </div>
 
-  <header>
-    <h1>shinneko22s website</h1>
-  </header>
+  <main>
+    <div class="bed">
+      <div class="cat cat--calico" id="cat" role="img" aria-label="A sleeping cat"></div>
+      <div class="cushion" aria-hidden="true"></div>
+    </div>
+    <p class="note">
+      The cat is sleeping.<br>
+      Please be quiet so you don't wake it up.
+    </p>
+  </main>
 
-  <section>
-    <h2>Self Introduction</h2>
-    <p>夜の都会へようこそ。</p>
-  </section>
+  <script>
+    // 寝ている猫をランダムに選ぶ
+    const kinds = ["black", "white", "calico"];
+    const kind = kinds[Math.floor(Math.random() * kinds.length)];
+    document.getElementById("cat").className = "cat cat--" + kind;
 
+    // 星をランダムに散らす
+    const stars = document.getElementById("stars");
+    for (let i = 0; i < 70; i++) {
+      const s = document.createElement("span");
+      s.className = "star" + (Math.random() < 0.35 ? " star--twinkle" : "");
+      s.style.left = Math.random() * 100 + "%";
+      s.style.top = Math.random() * 70 + "%";
+      const size = Math.random() < 0.15 ? 3 : 2;
+      s.style.width = s.style.height = size + "px";
+      s.style.animationDelay = (Math.random() * 6).toFixed(2) + "s";
+      stars.appendChild(s);
+    }
+  </script>
 </body>
 </html>
