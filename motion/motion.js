@@ -9,7 +9,7 @@
 
   const CFG = Object.assign({
     bpm: 124, music: null, media: [], useProcedural: true,
-    title: "MOTION", subtitle: "",
+    name: "shin2225",
   }, window.MOTION_CONFIG || {});
 
   const BEAT = 60 / CFG.bpm;
@@ -18,7 +18,7 @@
   const params = new URLSearchParams(location.search);
   const START_AT = Math.max(0, parseFloat(params.get("at")) || 0);   // ?at=48 で48拍目から (確認用)
 
-  const FONT_JA = "'Zen Kaku Gothic New', 'Hiragino Sans', 'Noto Sans JP', sans-serif";
+  const FONT_SANS = "'Helvetica Neue', Arial, sans-serif";
   const FONT_HUD = "'DotGothic16', 'Courier New', monospace";
 
   // ---------- DOM ----------
@@ -62,7 +62,7 @@
   };
 
   const buildProc = () => {
-    if (!window.PROC_SCENES) return;
+    if (!window.PROC_SCENES || !procSources.used) return;
     const [ow, oh] = sceneSize();
     const defs = Object.entries(window.PROC_SCENES);
     defs.forEach(([name, def], i) => {
@@ -79,27 +79,43 @@
     });
   };
 
-  const loadMedia = () => Promise.all((CFG.media || []).map(m => new Promise(resolve => {
-    const done = (el, w, h) => {
-      mediaSources.push({ kind: m.type, el, w, h, label: m.label || "", ja: m.ja || "" });
-      resolve();
-    };
-    if (m.type === "video") {
-      const v = document.createElement("video");
-      v.src = m.src; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto";
-      v.setAttribute("playsinline", "");
-      v.addEventListener("loadeddata", () => { v.play().catch(() => {}); done(v, v.videoWidth, v.videoHeight); }, { once: true });
-      v.addEventListener("error", () => { console.warn("video load failed:", m.src); resolve(); }, { once: true });
-    } else {
-      const img = new Image();
-      img.onload = () => done(img, img.naturalWidth, img.naturalHeight);
-      img.onerror = () => { console.warn("image load failed:", m.src); resolve(); };
-      img.src = m.src;
-    }
-  })));
+  // 画像/動画を読み込む (1つ10秒で諦める)。progress(読めた数, 全体) で進み具合を返す
+  const loadMedia = progress => {
+    const list = CFG.media || [];
+    let n = 0;
+    const tick = () => progress && progress(++n, list.length);
+    return Promise.all(list.map(m => new Promise(resolve => {
+      let settled = false;
+      const finish = item => {
+        if (settled) return;
+        settled = true;
+        if (item) mediaSources.push(item);
+        tick();
+        resolve();
+      };
+      setTimeout(() => { if (!settled) console.warn("load timeout:", m.src); finish(null); }, 10000);
+      if (m.type === "video") {
+        const v = document.createElement("video");
+        v.src = m.src; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto";
+        v.setAttribute("playsinline", "");
+        v.addEventListener("loadeddata", () => {
+          v.play().catch(() => {});
+          finish({ kind: "video", el: v, w: v.videoWidth, h: v.videoHeight, label: m.label || "" });
+        }, { once: true });
+        v.addEventListener("error", () => { console.warn("video load failed:", m.src); finish(null); }, { once: true });
+      } else {
+        const img = new Image();
+        img.decoding = "async";
+        img.onload = () => finish({ kind: "image", el: img, w: img.naturalWidth, h: img.naturalHeight, label: m.label || "" });
+        img.onerror = () => { console.warn("image load failed:", m.src); finish(null); };
+        img.src = m.src;
+      }
+    })));
+  };
 
   const collectSources = () => {
     sources = mediaSources.slice();
+    // 写真が1枚も読めなかったときは、コードで描いた仮の風景で代用する
     if (CFG.useProcedural || sources.length === 0) sources = sources.concat(procSources);
   };
 
@@ -114,7 +130,6 @@
   const sectionOf = bar => bar < 4 ? "intro" : bar < 12 ? "main" : bar < 15 ? "drop" : "outro";
   const sectionEnd = bar => bar < 4 ? 16 : bar < 12 ? 48 : bar < 15 ? 60 : 64;
 
-  const WORDS_EXTRA = ["ECHO", "BLUE", "HOME", "DRIFT", "NOISE", "AFTER", "GLOW", "WAVE"];
   const ACCENTS = ["#f3d27a", "#ff3d9a", "#35e0ff", "#9fb4ff", "#ffffff"];
   const TINTS = ["#ff3d9a", "#35e0ff", "#f3d27a", "#7a5cff"];
   let cutCounter = 0;
@@ -157,12 +172,10 @@
           px0: rnd() * 2 - 1, px1: rnd() * 2 - 1,
           py0: rnd() * 2 - 1, py1: rnd() * 2 - 1,
         },
-        layout: ["center", "corner", "vertical", "outline"][(rnd() * 4) | 0],
-        word: rnd() < 0.15 ? WORDS_EXTRA[(rnd() * WORDS_EXTRA.length) | 0] : null,
+        showWord: sec === "main" && len >= 1 && rnd() < 0.3,
         accent: ACCENTS[(rnd() * ACCENTS.length) | 0],
         tint: (sec === "drop" && rnd() < 0.45) || (sec === "main" && rnd() < 0.12) ? TINTS[(rnd() * TINTS.length) | 0] : null,
-        wipe: sec === "main" && rnd() < 0.25,
-        coords: `${(20 + rnd() * 25).toFixed(4)}°N  ${(125 + rnd() * 20).toFixed(4)}°E`,
+        wipe: sec === "main" && rnd() < 0.2,
         seed: (rnd() * 1e6) | 0,
       });
       b += len;
@@ -305,7 +318,7 @@
   };
 
   const text = (str, x, y, size, opt = {}) => {
-    ctx.font = `${opt.weight || 900} ${size}px ${opt.font || FONT_JA}`;
+    ctx.font = `${opt.weight || 900} ${size}px ${opt.font || FONT_SANS}`;
     ctx.textAlign = opt.align || "center";
     ctx.textBaseline = opt.baseline || "middle";
     if (opt.spacing && "letterSpacing" in ctx) ctx.letterSpacing = opt.spacing + "px";
@@ -331,11 +344,6 @@
     ctx.restore();
   };
 
-  const timecode = sec => {
-    const f = Math.floor(sec * 24) % 24, s = Math.floor(sec) % 60, m = Math.floor(sec / 60);
-    return [m, s, f].map(v => String(v).padStart(2, "0")).join(":");
-  };
-
   const corners = (m, l, a) => {
     ctx.strokeStyle = `rgba(255,255,255,${a})`;
     ctx.lineWidth = 1;
@@ -349,82 +357,68 @@
   // ---------- オーバーレイ ----------
   const S = () => Math.min(W, H);
 
-  const drawWord = (cut, lt) => {
-    const s = sources[cut.src] || {};
-    const ja = s.ja || "";
-    const en = cut.word || s.label || "";
-    const k = lt / Math.min(0.18, cut.len * BEAT * 0.5);
-    const big = S() * (cut.sec === "drop" ? 0.5 : 0.42);
-    const shadow = "rgba(0,0,0,0.35)";
-    switch (cut.layout) {
-      case "center": {
-        maskReveal(k, 0, H / 2 - big * 0.62, W, big * 1.1, () => {
-          text(ja, W / 2 + 3, H / 2 - big * 0.05 + 3, big, { color: shadow });
-          text(ja, W / 2, H / 2 - big * 0.05, big);
-        });
-        maskReveal(k * 0.8, 0, H / 2 + big * 0.5, W, 30, () => {
-          text(en, W / 2, H / 2 + big * 0.5 + 15, 14, { font: FONT_HUD, weight: 400, spacing: 8 });
-        });
-        break;
-      }
-      case "corner": {
-        const m = S() * 0.07, sz = big * 0.55;
-        maskReveal(k, m, H - m - sz * 1.05, sz * 1.2, sz * 1.1, () => {
-          text(ja, m, H - m - sz * 0.5, sz, { align: "left" });
-        });
-        const lw = ease(k * 1.2) * S() * 0.3;
-        ctx.fillStyle = cut.accent;
-        ctx.fillRect(m + sz * 1.15, H - m - sz * 0.5, lw, 2);
-        maskReveal(k, m + sz * 1.15, H - m - sz * 0.5 - 26, S() * 0.5, 24, () => {
-          text(en, m + sz * 1.15, H - m - sz * 0.5 - 12, 16, { align: "left", font: FONT_HUD, weight: 400, spacing: 4 });
-        });
-        break;
-      }
-      case "vertical": {
-        const m = S() * 0.08, sz = big * 0.45;
-        const x = W - m - sz / 2;
-        maskReveal(k, x - sz, m, sz * 2, sz * 1.1, () => text(ja, x, m + sz * 0.5, sz));
-        const letters = en.split("");
-        letters.forEach((ch, i) => {
-          const kk = k * 1.4 - i * 0.12;
-          if (kk <= 0) return;
-          ctx.globalAlpha = Math.min(1, kk);
-          text(ch, x, m + sz * 1.25 + i * 20, 15, { font: FONT_HUD, weight: 400 });
-        });
-        ctx.globalAlpha = 1;
-        break;
-      }
-      case "outline": {
-        const sz = Math.min(W / Math.max(3, en.length) * 1.5, H * 0.4);
-        const off = (1 - ease(k)) * W * 0.15;
-        ctx.globalAlpha = 0.9;
-        text(en, W / 2 + off, H / 2, sz, { stroke: true, lineWidth: Math.max(1.5, sz / 60), spacing: sz * 0.05 });
-        ctx.globalAlpha = 1;
-        text(ja, W / 2 - off * 0.5, H / 2, sz * 0.35, { color: cut.accent });
-        break;
-      }
+  // 対角線が縦横に乗る正方形 (ひし形)。r は中心から頂点までの長さ
+  const diamond = (cx, cy, r) => {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r);
+    ctx.lineTo(cx + r, cy);
+    ctx.lineTo(cx, cy + r);
+    ctx.lineTo(cx - r, cy);
+    ctx.closePath();
+  };
+  const DIAMOND_R = () => S() * 0.2;
+  const COVER_R = () => (W + H) / 2 + 4;   // 画面全体を覆うひし形の大きさ
+
+  // ひし形の窓の中にだけ映像を出す
+  const drawInDiamond = (cut, k, tSong, r, beatPulse) => {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    diamond(W / 2, H / 2, r);
+    ctx.clip();
+    drawSource(cut, k, tSong);
+    grade(cut);
+    ctx.restore();
+    if (r < COVER_R() * 0.9) {
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.lineWidth = 1.5;
+      diamond(W / 2, H / 2, r * (1 + beatPulse * 0.025));
+      ctx.stroke();
     }
   };
 
-  const drawHUD = (cut, b, tSong, alpha) => {
-    const m = 18;
+  const drawName = (r, alpha) => {
+    if (alpha <= 0) return;
     ctx.globalAlpha = alpha;
-    const s = sources[cut.src] || {};
-    text(`CUT ${String(cut.n).padStart(3, "0")}`, m, m + 8, 12, { align: "left", font: FONT_HUD, weight: 400, spacing: 2 });
-    text(`SCENE / ${s.label || "-"}`, m, m + 26, 10, { align: "left", font: FONT_HUD, weight: 400, spacing: 2, color: "rgba(255,255,255,0.6)" });
-    text(timecode(tSong), W - m, m + 8, 12, { align: "right", font: FONT_HUD, weight: 400, spacing: 2 });
-    text(cut.coords, m, H - m - 6, 10, { align: "left", font: FONT_HUD, weight: 400, spacing: 1, color: "rgba(255,255,255,0.7)" });
-    // 拍のインジケータ
-    const beatIn = Math.floor(b) % 4;
-    for (let i = 0; i < 4; i++) {
-      ctx.fillStyle = i === beatIn ? cut.accent : "rgba(255,255,255,0.3)";
-      ctx.fillRect(W - m - 8 - (3 - i) * 12, H - m - 10, 8, 8);
-    }
-    text(`${CFG.bpm} BPM`, W - m - 56, H - m - 6, 10, { align: "right", font: FONT_HUD, weight: 400, spacing: 1, color: "rgba(255,255,255,0.7)" });
-    // ループの進み具合
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.fillRect(0, H - 2, W * (b / LOOP_BEATS), 2);
+    text(CFG.name, W / 2, H / 2 + r + Math.max(30, S() * 0.06), Math.max(15, S() * 0.03),
+      { font: FONT_HUD, weight: 400, spacing: Math.max(4, S() * 0.008) });
     ctx.globalAlpha = 1;
+  };
+
+  // 真ん中にさらっと出す英字 (フェードイン/アウト)
+  const drawLightWord = (cut, lt) => {
+    const s = sources[cut.src] || {};
+    if (!s.label) return;
+    const dur = cut.len * BEAT;
+    const a = Math.min(1, lt / 0.12, (dur - lt) / 0.12);
+    if (a <= 0) return;
+    ctx.globalAlpha = a * 0.95;
+    text(s.label.toUpperCase(), W / 2, H / 2, 13, { font: FONT_HUD, weight: 400, spacing: 7 });
+    ctx.globalAlpha = 1;
+  };
+
+  // 色かぶせ + 少し暗く
+  const grade = cut => {
+    if (cut.tint) {
+      ctx.globalCompositeOperation = "color";
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = cut.tint;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.fillRect(0, 0, W, H);
   };
 
   const drawRing = (b, color) => {
@@ -527,80 +521,49 @@
     px();
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";
-    drawSource(cut, k, tSong);
-
-    // 色をかぶせる (カラーグレーディング風)
-    if (cut.tint) {
-      ctx.globalCompositeOperation = "color";
-      ctx.globalAlpha = 0.85;
-      ctx.fillStyle = cut.tint;
-      ctx.fillRect(0, 0, W, H);
-      ctx.globalCompositeOperation = "source-over";
-      ctx.globalAlpha = 1;
-    }
-    ctx.fillStyle = "rgba(0,0,0,0.18)";
-    ctx.fillRect(0, 0, W, H);
+    const pulse = Math.max(0, 1 - (b - Math.floor(b)) * 4);   // 拍の頭で 1 → すぐ 0
 
     if (sec === "intro") {
-      // タイトル: 1文字ずつ
-      const title = CFG.title;
-      const n = Math.min(title.length, Math.floor(b * 2));
-      const sz = Math.min(W / (title.length * 0.75), S() * 0.14);
-      text(title.slice(0, n) + (n < title.length && Math.floor(b * 4) % 2 ? "_" : ""), W / 2, H / 2, sz, { spacing: sz * 0.12 });
-      if (b > 6) {
-        ctx.globalAlpha = Math.min(1, (b - 6) / 2);
-        text(CFG.subtitle, W / 2, H / 2 + sz * 0.9, 13, { font: FONT_HUD, weight: 400, spacing: 4 });
-        ctx.globalAlpha = 1;
-      }
-      const lw = ease(b / 8) * W * 0.5;
-      ctx.fillStyle = "rgba(255,255,255,0.7)";
-      ctx.fillRect(W / 2 - lw / 2, H / 2 - sz * 0.75, lw, 1);
-    } else if (sec === "main") {
-      drawRing(b, cut.accent);
-      // 小節頭に横線が走る
-      const kb = (b % 4) / 1;
-      if (kb < 1) {
-        ctx.fillStyle = "rgba(255,255,255,0.5)";
-        ctx.fillRect(0, lerp(0, H, ease(kb)), W, 1);
-      }
-      drawWord(cut, lt);
-      if (cut.wipe && lt < 0.16) {
-        const e = ease(lt / 0.16);
-        ctx.fillStyle = cut.accent;
-        ctx.fillRect(e * W, 0, W, H);
-      }
-    } else if (sec === "drop") {
-      if (!calm) drawShapes(cut, lt);
-      if (cut.n % 2) drawWord(cut, lt);
-      else {
-        const sz = S() * 0.6;
-        text(String(cut.n % 100).padStart(2, "0"), W / 2, H / 2, sz, { stroke: true, lineWidth: 2, color: cut.accent });
-      }
-      if (!calm && lt < 0.09) glitch(cut.seed + Math.floor(lt * 60), 1);
-      if (!calm && b % 4 < 0.25) {             // 小節頭だけ弱いフラッシュ (1秒に1回以下)
-        ctx.fillStyle = `rgba(255,255,255,${0.35 * (1 - (b % 4) / 0.25)})`;
-        ctx.fillRect(0, 0, W, H);
-      }
+      // ひし形の窓 → 最後の2拍で画面いっぱいに広がる
+      const r0 = DIAMOND_R();
+      let r = r0 * ease(b / 1);
+      if (b > 14) r = lerp(r0, COVER_R(), ease((b - 14) / 2) ** 1.5);
+      drawInDiamond(cut, k, tSong, r, pulse);
+      drawName(r0, Math.min(1, (b - 1) / 1) * (1 - Math.max(0, (b - 13.5) / 0.5)));
+    } else if (sec === "outro") {
+      // 画面がひし形に縮んで、名前が出て、暗転
+      const r0 = DIAMOND_R();
+      const r = lerp(COVER_R(), r0, ease(lb / 1.5));
+      drawInDiamond(cut, k, tSong, r, lb > 1.5 ? pulse : 0);
+      drawName(r0, Math.min(1, Math.max(0, (lb - 1.2) / 0.8)));
     } else {
-      // outro
-      const sz = S() * 0.06;
-      ctx.globalAlpha = Math.min(1, lb / 1.5);
-      text(CFG.subtitle, W / 2, H / 2, Math.max(14, sz * 0.5), { font: FONT_HUD, weight: 400, spacing: 6 });
-      text("shinneko22", W / 2, H / 2 + sz, 11, { font: FONT_HUD, weight: 400, spacing: 6, color: "rgba(255,255,255,0.6)" });
-      ctx.globalAlpha = 1;
+      drawSource(cut, k, tSong);
+      grade(cut);
+      if (sec === "main") {
+        drawRing(b, cut.accent);
+        // 小節頭に横線が走る
+        const kb = b % 4;
+        if (kb < 1) {
+          ctx.fillStyle = "rgba(255,255,255,0.5)";
+          ctx.fillRect(0, lerp(0, H, ease(kb)), W, 1);
+        }
+        if (cut.showWord) drawLightWord(cut, lt);
+        if (cut.wipe && lt < 0.16) {
+          const e = ease(lt / 0.16);
+          ctx.fillStyle = cut.accent;
+          ctx.fillRect(e * W, 0, W, H);
+        }
+      } else {
+        // drop
+        if (!calm) drawShapes(cut, lt);
+        if (!calm && lt < 0.09) glitch(cut.seed + Math.floor(lt * 60), 1);
+        if (!calm && b % 4 < 0.25) {           // 小節頭だけ弱いフラッシュ (1秒に1回以下)
+          ctx.fillStyle = `rgba(255,255,255,${0.35 * (1 - (b % 4) / 0.25)})`;
+          ctx.fillRect(0, 0, W, H);
+        }
+      }
+      corners(14, 16, 0.5);
     }
-
-    // 上下の黒帯 (シネスコ風): intro と outro で出す
-    const lbT = sec === "intro" ? 1 - ease((b - 14) / 2) : sec === "outro" ? ease(lb / 1) : 0;
-    if (lbT > 0) {
-      const bh = H * 0.11 * lbT;
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, W, bh);
-      ctx.fillRect(0, H - bh, W, bh);
-    }
-
-    corners(14, 16, 0.5);
-    if (sec !== "intro") drawHUD(cut, b, tSong, 0.85);
     finish();
 
     // ループの最後は暗転
@@ -660,14 +623,21 @@
     if (document.fonts && document.fonts.load) {
       await Promise.race([
         Promise.all([
-          document.fonts.load(`900 100px 'Zen Kaku Gothic New'`, "山海森街夜光星雨雪空花道MOTION"),
-          document.fonts.load(`16px 'DotGothic16'`, "CUT0123456789"),
+          document.fonts.load(`16px 'DotGothic16'`, "shin2225ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
         ]).catch(() => {}),
         new Promise(r => setTimeout(r, 1500)),
       ]);
     }
-    await loadMedia();
+    const loadingEl = document.getElementById("loading");
+    await loadMedia((n, total) => { loadingEl.textContent = `loading ${n} / ${total}`; });
     running = true;
+    procSources.used = CFG.useProcedural || mediaSources.length === 0;
+    if (procSources.used) {
+      // procSources に定義を並べてから描く
+      Object.entries(window.PROC_SCENES || {}).forEach(([name, def], i) => {
+        procSources[i] = { kind: "proc", name, def, label: def.label, seed: (Math.random() * 1e9) | 0, el: document.createElement("canvas") };
+      });
+    }
     buildProc();
     collectSources();
     applySound();

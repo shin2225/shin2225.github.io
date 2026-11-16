@@ -3,28 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>MOTION 01 — shinneko22s website</title>
+  <title>MOTION — shinneko22s website</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="motion.css?v=1">
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="motion.css?v=2">
 </head>
 <body>
-  <canvas id="stage" aria-label="A sequence of fast-cut landscape scenes with motion graphics"></canvas>
+  <canvas id="stage" aria-label="A sequence of fast-cut photos of nature and cities with motion graphics"></canvas>
 
   <!-- 再生前の画面 (音を鳴らすにはクリックが必要なため) -->
   <div class="start" id="start">
     <div class="start__box">
-      <p class="start__no">01</p>
-      <h1 class="start__title">MOTION</h1>
-      <p class="start__sub">nature &amp; city — fast cuts</p>
+      <div class="start__diamond" aria-hidden="true"></div>
+      <p class="start__name">shin2225</p>
       <div class="start__buttons">
-        <button class="btn btn--main" id="play">▶ PLAY WITH SOUND</button>
-        <button class="btn" id="playMuted">PLAY MUTED</button>
+        <button class="btn btn--main" id="play">▶ PLAY</button>
+        <button class="btn" id="playMuted">MUTED</button>
       </div>
-      <p class="start__warn">⚠ This page contains rapid cuts and flashing images.<br>Turn on CALM mode (key C) to slow it down.</p>
-      <p class="start__note">Scenes are placeholders for now.</p>
-      <p class="start__loading">loading…</p>
+      <p class="start__warn">⚠ rapid cuts and flashing images — press C for calm mode</p>
+      <p class="start__loading" id="loading">loading…</p>
       <a class="start__back" href="../#pages">← back to the town</a>
     </div>
   </div>
@@ -38,8 +36,8 @@
     <button class="btn btn--small" id="btnFull">⛶ FULL</button>
   </nav>
 
-  <script src="config.js?v=1"></script>
-  <script src="scenes.js?v=1"></script>
-  <script src="motion.js?v=1"></script>
+  <script src="config.js?v=2"></script>
+  <script src="scenes.js?v=2"></script>
+  <script src="motion.js?v=2"></script>
 </body>
 </html>

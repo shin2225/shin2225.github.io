@@ -1,7 +1,8 @@
 # MOTION の素材置き場
 
 `motion/` ページ (高速カット + モーショングラフィックス) で使う写真・動画・曲をここに置く。
-今は素材がないので、`motion/scenes.js` にコードで描いた仮の風景 12 種類 (山・海・森・街・夜・光・星・雨・雪・空・花・道) が流れている。
+今はサンプルとして Wikimedia Commons の CC0 / パブリックドメインの写真 14 枚を直接読み込んでいる (出典は `CREDITS.md`)。
+写真が1枚も読み込めなかったときは、`motion/scenes.js` にコードで描いた仮の風景で代わりに動く。
 
 ## 差し替え方
 
@@ -10,13 +11,13 @@
 
 ```js
 media: [
-  { type: "image", src: "../assets/motion/shibuya.jpg", label: "CITY",   ja: "街" },
-  { type: "video", src: "../assets/motion/forest.mp4",  label: "FOREST", ja: "森" },
+  { type: "image", src: "../assets/motion/shibuya.jpg", label: "city" },
+  { type: "video", src: "../assets/motion/forest.mp4",  label: "forest" },
 ],
-useProcedural: false,   // 仮素材を混ぜないなら false
 ```
 
-- `label` は小さい英字のキャプション、`ja` は大きく出る1文字
+- `label` は画面中央にときどき小さく出る英語 (空にすれば出ない)
+- 最初と最後のひし形の下に出る名前は `name` で変えられる
 - 画像は画面いっぱいに切り抜かれて、カットごとにゆっくりズーム/パンする
 - 動画は音なしでループ再生され、そのままカットの素材になる
 
