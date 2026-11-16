@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <div class="sky" aria-hidden="true">
@@ -31,10 +31,12 @@
     const kinds = ["black", "white", "calico"];
     const moods = {
       sleep: {
+        frames: [500, 500, 600, 700],  // 各コマの表示時間(ms)
         label: "A sleeping cat",
         note: "The cat is sleeping.<br>Please be quiet so you don't wake it up."
       },
       stare: {
+        frames: [600, 600, 600, 600, 150, 800],
         label: "A cat staring at you",
         note: "The cat is staring at you."
       }
@@ -46,6 +48,16 @@
     cat.className = `cat cat--${mood} cat--${mood}-${kind}`;
     cat.setAttribute("aria-label", moods[mood].label);
     document.getElementById("note").innerHTML = moods[mood].note;
+
+    // コマ送り (CSSアニメーションではなくJSで切り替え: iPadのSafariでも確実に動かすため)
+    const frames = moods[mood].frames;
+    let f = 0;
+    const step = () => {
+      cat.style.backgroundPosition = (f / (frames.length - 1) * 100) + "% 0";
+      setTimeout(step, frames[f]);
+      f = (f + 1) % frames.length;
+    };
+    step();
 
     // 星をランダムに散らす
     const stars = document.getElementById("stars");
