@@ -1,0 +1,169 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  color: #e8ecff;
+  font-family: "DotGothic16", "Courier New", monospace;
+  overflow: hidden;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hide-cursor { cursor: none; }
+
+/* ===== ボタン (トップページのカードと同じ角欠け枠) ===== */
+.btn {
+  --edge: rgba(232, 236, 255, 0.6);
+  font: inherit;
+  color: inherit;
+  background: rgba(10, 12, 30, 0.75);
+  border: 0;
+  padding: 10px 18px;
+  margin: 3px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow:
+    0 -3px 0 0 var(--edge),
+    0 3px 0 0 var(--edge),
+    -3px 0 0 0 var(--edge),
+    3px 0 0 0 var(--edge);
+}
+
+.btn:hover,
+.btn:focus-visible {
+  --edge: #f3d27a;
+  color: #f3d27a;
+  outline: none;
+}
+
+.btn--main {
+  --edge: #f3d27a;
+  color: #0b0e24;
+  background: #f3d27a;
+}
+
+.btn--main:hover,
+.btn--main:focus-visible {
+  --edge: #fff;
+  color: #0b0e24;
+  background: #fff;
+}
+
+.btn--small {
+  padding: 6px 10px;
+  font-size: 0.75rem;
+}
+
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+/* ===== 再生前の画面 ===== */
+.start {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at center, #141a42 0%, #05060f 75%);
+  text-align: center;
+  padding: 20px;
+}
+
+.start[hidden] { display: none; }
+
+.start__no {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.4em;
+  opacity: 0.5;
+}
+
+.start__title {
+  margin: 6px 0 4px;
+  font-weight: normal;
+  font-size: clamp(2.4rem, 9vw, 4.5rem);
+  letter-spacing: 0.25em;
+  margin-right: -0.25em;
+}
+
+.start__sub {
+  margin: 0 0 34px;
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  opacity: 0.75;
+}
+
+.start__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+.start__warn {
+  margin: 32px 0 6px;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  color: #ffcf8a;
+  opacity: 0.85;
+}
+
+.start__note {
+  margin: 0 0 26px;
+  font-size: 0.7rem;
+  opacity: 0.45;
+}
+
+.start__loading {
+  display: none;
+  margin: 0 0 20px;
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  animation: pulse 1s steps(2, jump-none) infinite;
+}
+
+.start--loading .start__loading { display: block; }
+
+@keyframes pulse {
+  50% { opacity: 0.3; }
+}
+
+.start__back {
+  color: inherit;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  text-decoration: none;
+  letter-spacing: 0.1em;
+}
+
+.start__back:hover { opacity: 1; color: #f3d27a; }
+
+/* ===== 再生中の操作ボタン ===== */
+.ui {
+  position: fixed;
+  left: 50%;
+  bottom: calc(40px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+}
+
+.ui--show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 再生前は出さない */
+.start:not([hidden]) ~ .ui { display: none; }

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MOTION 01 — shinneko22s website</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="motion.css?v=1">
+</head>
+<body>
+  <canvas id="stage" aria-label="A sequence of fast-cut landscape scenes with motion graphics"></canvas>
+
+  <!-- 再生前の画面 (音を鳴らすにはクリックが必要なため) -->
+  <div class="start" id="start">
+    <div class="start__box">
+      <p class="start__no">01</p>
+      <h1 class="start__title">MOTION</h1>
+      <p class="start__sub">nature &amp; city — fast cuts</p>
+      <div class="start__buttons">
+        <button class="btn btn--main" id="play">▶ PLAY WITH SOUND</button>
+        <button class="btn" id="playMuted">PLAY MUTED</button>
+      </div>
+      <p class="start__warn">⚠ This page contains rapid cuts and flashing images.<br>Turn on CALM mode (key C) to slow it down.</p>
+      <p class="start__note">Scenes are placeholders for now.</p>
+      <p class="start__loading">loading…</p>
+      <a class="start__back" href="../#pages">← back to the town</a>
+    </div>
+  </div>
+
+  <!-- 操作ボタン (マウスを動かすと出る) -->
+  <nav class="ui" id="ui" aria-label="Player controls">
+    <a class="btn btn--small" href="../#pages">← TOP</a>
+    <button class="btn btn--small" id="btnPause">❚❚ PAUSE</button>
+    <button class="btn btn--small" id="btnSound" aria-pressed="false">♪ OFF</button>
+    <button class="btn btn--small" id="btnCalm" aria-pressed="false">CALM: OFF</button>
+    <button class="btn btn--small" id="btnFull">⛶ FULL</button>
+  </nav>
+
+  <script src="config.js?v=1"></script>
+  <script src="scenes.js?v=1"></script>
+  <script src="motion.js?v=1"></script>
+</body>
+</html>

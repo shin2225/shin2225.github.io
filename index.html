@@ -7,24 +7,73 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
-  <div class="sky" aria-hidden="true">
-    <div class="stars" id="stars"></div>
-    <div class="moon"></div>
+  <!-- 星空 → 下に降りると夜の街 -->
+  <div class="night" id="night">
+    <div class="stars" id="stars" aria-hidden="true"></div>
+    <div class="moon" aria-hidden="true"></div>
+
+    <main class="hero">
+      <div class="bed">
+        <div class="cat cat--sleep cat--sleep-calico" id="cat" role="img" aria-label="A sleeping cat"></div>
+        <div class="cushion" aria-hidden="true"></div>
+      </div>
+      <p class="note" id="note">
+        The cat is sleeping.<br>
+        Please be quiet so you don't wake it up.
+      </p>
+      <a class="scroll-hint" href="#pages" aria-label="Scroll down to the page list">
+        <span>down to the town</span>
+        <span class="scroll-hint__arrow" aria-hidden="true">▼</span>
+      </a>
+    </main>
+
+    <div class="descent" aria-hidden="true"></div>
+
+    <div class="city" aria-hidden="true">
+      <div class="city__far" id="cityFar"></div>
+      <div class="city__near">
+        <div class="city__blink city__blink--a"></div>
+        <div class="city__blink city__blink--b"></div>
+      </div>
+    </div>
   </div>
 
-  <main>
-    <div class="bed">
-      <div class="cat cat--sleep cat--sleep-calico" id="cat" role="img" aria-label="A sleeping cat"></div>
-      <div class="cushion" aria-hidden="true"></div>
-    </div>
-    <p class="note" id="note">
-      The cat is sleeping.<br>
-      Please be quiet so you don't wake it up.
-    </p>
-  </main>
+  <!-- ページ一覧 -->
+  <section class="pages" id="pages">
+    <h2 class="pages__title">PAGES</h2>
+    <ul class="pages__list">
+      <li>
+        <a class="card" href="motion/">
+          <div class="card__thumb" aria-hidden="true">
+            <span class="thumb-cut thumb-cut--1"></span>
+            <span class="thumb-cut thumb-cut--2"></span>
+            <span class="thumb-cut thumb-cut--3"></span>
+            <span class="thumb-cut thumb-cut--4"></span>
+          </div>
+          <div class="card__body">
+            <span class="card__no">01</span>
+            <span class="card__name">MOTION</span>
+            <span class="card__desc">Fast cuts of nature &amp; city, with motion graphics.</span>
+          </div>
+          <span class="card__arrow" aria-hidden="true">▶</span>
+        </a>
+      </li>
+      <li>
+        <div class="card card--soon" aria-disabled="true">
+          <div class="card__thumb card__thumb--empty" aria-hidden="true">?</div>
+          <div class="card__body">
+            <span class="card__no">02</span>
+            <span class="card__name">COMING SOON</span>
+            <span class="card__desc">Something new is being built in this town.</span>
+          </div>
+        </div>
+      </li>
+    </ul>
+    <p class="pages__foot">shinneko22</p>
+  </section>
 
   <script>
     // 猫の種類(3) x モーション(2) = 6パターンからランダムに選ぶ
@@ -59,17 +108,37 @@
     };
     step();
 
-    // 星をランダムに散らす
+    // 星をランダムに散らす (下=街に近いほどまばらに)
     const stars = document.getElementById("stars");
-    for (let i = 0; i < 70; i++) {
+    const night = document.getElementById("night");
+    const nStars = Math.round(70 * night.offsetHeight / window.innerHeight);
+    for (let i = 0; i < nStars; i++) {
       const s = document.createElement("span");
       s.className = "star" + (Math.random() < 0.35 ? " star--twinkle" : "");
       s.style.left = Math.random() * 100 + "%";
-      s.style.top = Math.random() * 70 + "%";
+      s.style.top = Math.pow(Math.random(), 1.5) * 82 + "%";
       const size = Math.random() < 0.15 ? 3 : 2;
       s.style.width = s.style.height = size + "px";
       s.style.animationDelay = (Math.random() * 6).toFixed(2) + "s";
       stars.appendChild(s);
+    }
+
+    // 遠景のビルだけ少しゆっくり動かす (視差)
+    const far = document.getElementById("cityFar");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let ticking = false;
+    const parallax = () => {
+      const r = far.parentElement.getBoundingClientRect();
+      // 街の下端が画面の下端にそろった位置で 0、それより手前では少し沈めておく
+      const off = Math.max(0, Math.min(40, (r.bottom - window.innerHeight) * 0.15));
+      far.style.transform = `translateY(${off.toFixed(1)}px)`;
+      ticking = false;
+    };
+    if (!reduce) {
+      window.addEventListener("scroll", () => {
+        if (!ticking) { ticking = true; requestAnimationFrame(parallax); }
+      }, { passive: true });
+      parallax();
     }
   </script>
 </body>
