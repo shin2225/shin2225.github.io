@@ -17,20 +17,35 @@
 
   <main>
     <div class="bed">
-      <div class="cat cat--calico" id="cat" role="img" aria-label="A sleeping cat"></div>
+      <div class="cat cat--sleep cat--sleep-calico" id="cat" role="img" aria-label="A sleeping cat"></div>
       <div class="cushion" aria-hidden="true"></div>
     </div>
-    <p class="note">
+    <p class="note" id="note">
       The cat is sleeping.<br>
       Please be quiet so you don't wake it up.
     </p>
   </main>
 
   <script>
-    // 寝ている猫をランダムに選ぶ
+    // 猫の種類(3) x モーション(2) = 6パターンからランダムに選ぶ
     const kinds = ["black", "white", "calico"];
-    const kind = kinds[Math.floor(Math.random() * kinds.length)];
-    document.getElementById("cat").className = "cat cat--" + kind;
+    const moods = {
+      sleep: {
+        label: "A sleeping cat",
+        note: "The cat is sleeping.<br>Please be quiet so you don't wake it up."
+      },
+      stare: {
+        label: "A cat staring at you",
+        note: "The cat is staring at you."
+      }
+    };
+    const pick = a => a[Math.floor(Math.random() * a.length)];
+    const kind = pick(kinds);
+    const mood = pick(Object.keys(moods));
+    const cat = document.getElementById("cat");
+    cat.className = `cat cat--${mood} cat--${mood}-${kind}`;
+    cat.setAttribute("aria-label", moods[mood].label);
+    document.getElementById("note").innerHTML = moods[mood].note;
 
     // 星をランダムに散らす
     const stars = document.getElementById("stars");
