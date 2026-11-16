@@ -65,30 +65,53 @@ main {
   align-items: center;
 }
 
-/* スプライト: 32x32 x 4コマを横に並べた画像を 8 倍で表示 */
+/* スプライト: 32x32 のコマを横に並べた画像を 8 倍で表示 */
 .cat {
   --px: 8;
   width: calc(32px * var(--px));
   height: calc(32px * var(--px));
-  background-size: 400% 100%;
   background-repeat: no-repeat;
   image-rendering: pixelated;
-  animation: doze 2.3s step-end infinite;
   position: relative;
   z-index: 1;
 }
 
-.cat--black  { background-image: url("assets/cats/sleepy_black.png"); }
-.cat--white  { background-image: url("assets/cats/sleepy_white.png"); }
-.cat--calico { background-image: url("assets/cats/sleepy_calico.png"); }
+/* --- 寝ている猫: 4コマ (0.5s / 0.5s / 0.6s / 0.7s) --- */
+.cat--sleep {
+  background-size: 400% 100%;
+  animation: doze 2.3s step-end infinite;
+}
 
-/* コマ送り: 0.5s / 0.5s / 0.6s / 0.7s */
+.cat--sleep-black  { background-image: url("assets/cats/sleepy_black.png"); }
+.cat--sleep-white  { background-image: url("assets/cats/sleepy_white.png"); }
+.cat--sleep-calico { background-image: url("assets/cats/sleepy_calico.png"); }
+
 @keyframes doze {
   0%     { background-position:   0%     0; }
   21.74% { background-position:  33.333% 0; }
   43.48% { background-position:  66.667% 0; }
   69.57% { background-position: 100%     0; }
   100%   { background-position: 100%     0; }
+}
+
+/* --- じっと見る猫: 6コマ (しっぽ 0.6s x4 → まばたき 0.15s → 0.8s) --- */
+.cat--stare {
+  background-size: 600% 100%;
+  animation: stare 3.35s step-end infinite;
+}
+
+.cat--stare-black  { background-image: url("assets/cats/stare_black.png"); }
+.cat--stare-white  { background-image: url("assets/cats/stare_white.png"); }
+.cat--stare-calico { background-image: url("assets/cats/stare_calico.png"); }
+
+@keyframes stare {
+  0%     { background-position:   0% 0; }
+  17.91% { background-position:  20% 0; }
+  35.82% { background-position:  40% 0; }
+  53.73% { background-position:  60% 0; }
+  71.64% { background-position:  80% 0; }
+  76.12% { background-position: 100% 0; }
+  100%   { background-position: 100% 0; }
 }
 
 /* 月明かりのクッション（黒猫も沈まないように） */
@@ -121,5 +144,6 @@ main {
 /* 動きを減らす設定の人には止めて表示 */
 @media (prefers-reduced-motion: reduce) {
   .cat, .star--twinkle { animation: none; }
-  .cat { background-position: 100% 0; }
+  .cat--sleep { background-position: 100% 0; }
+  .cat--stare { background-position: 0 0; }
 }
