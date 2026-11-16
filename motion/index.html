@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MOTION — shinneko22s website</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="motion.css?v=2">
+</head>
+<body>
+  <canvas id="stage" aria-label="A sequence of fast-cut photos of nature and cities with motion graphics"></canvas>
+
+  <!-- 再生前の画面 (音を鳴らすにはクリックが必要なため) -->
+  <div class="start" id="start">
+    <div class="start__box">
+      <div class="start__diamond" aria-hidden="true"></div>
+      <p class="start__name">shin2225</p>
+      <div class="start__buttons">
+        <button class="btn btn--main" id="play">▶ PLAY</button>
+        <button class="btn" id="playMuted">MUTED</button>
+      </div>
+      <p class="start__warn">⚠ rapid cuts and flashing images — press C for calm mode</p>
+      <p class="start__loading" id="loading">loading…</p>
+      <a class="start__back" href="../#pages">← back to the town</a>
+    </div>
+  </div>
+
+  <!-- 操作ボタン (マウスを動かすと出る) -->
+  <nav class="ui" id="ui" aria-label="Player controls">
+    <a class="btn btn--small" href="../#pages">← TOP</a>
+    <button class="btn btn--small" id="btnPause">❚❚ PAUSE</button>
+    <button class="btn btn--small" id="btnSound" aria-pressed="false">♪ OFF</button>
+    <button class="btn btn--small" id="btnCalm" aria-pressed="false">CALM: OFF</button>
+    <button class="btn btn--small" id="btnFull">⛶ FULL</button>
+  </nav>
+
+  <script src="config.js?v=2"></script>
+  <script src="scenes.js?v=2"></script>
+  <script src="motion.js?v=2"></script>
+</body>
+</html>

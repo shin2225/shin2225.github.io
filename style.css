@@ -1,19 +1,41 @@
 /* ===== 全体 ===== */
+:root {
+  --ground: #0b0e24;          /* 街の地面 = tools/gen_city.py の GROUND */
+  --text: #c9d1ee;
+  --warm: #f3d27a;            /* 窓あかり */
+  --city-px: 4;               /* 街のドット絵の拡大率 */
+}
+
 html, body {
   margin: 0;
-  height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: linear-gradient(to bottom, #070b1f 0%, #111a3d 55%, #1d2752 100%);
-  color: #c9d1ee;
+  background: var(--ground);
+  color: var(--text);
   font-family: "DotGothic16", "Courier New", monospace;
-  overflow: hidden;
 }
 
-/* ===== 夜空 ===== */
-.sky {
-  position: fixed;
+/* ===== 夜空 (猫の画面 + 街まで降りる部分) ===== */
+.night {
+  position: relative;
+  overflow: hidden;
+  /* 最初の1画面は以前と同じ色、そこから街あかりで少し明るく紫がかる */
+  background: linear-gradient(to bottom,
+    #070b1f 0,
+    #111a3d 55vh,
+    #1d2752 100vh,
+    #262d60 calc(100% - 420px),
+    #3a3268 calc(100% - 140px),
+    #463670 100%);
+}
+
+.stars {
+  position: absolute;
   inset: 0;
   pointer-events: none;
 }
@@ -44,12 +66,14 @@ body {
   background: transparent;
   box-shadow: -14px 8px 0 0 #f6e9b8;
   filter: drop-shadow(0 0 18px rgba(246, 233, 184, 0.35));
+  pointer-events: none;
 }
 
 /* ===== 猫 ===== */
-main {
+.hero {
   position: relative;
-  height: 100%;
+  height: 100vh;
+  height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -113,15 +137,235 @@ main {
   opacity: 0.85;
 }
 
+/* 下へ降りる案内 */
+.scroll-hint {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  opacity: 0.45;
+  transition: opacity 0.3s;
+}
+
+.scroll-hint:hover,
+.scroll-hint:focus-visible { opacity: 0.9; }
+
+.scroll-hint__arrow {
+  animation: nudge 2.4s steps(2, jump-none) infinite;
+}
+
+@keyframes nudge {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(4px); }
+}
+
+/* ===== 夜の街 (ドット絵: tools/gen_city.py で生成) ===== */
+.descent {
+  height: 45vh;
+}
+
+.city {
+  position: relative;
+  height: calc(120px * var(--city-px));
+}
+
+.city__far,
+.city__near,
+.city__blink {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-repeat: repeat-x;
+  background-position: center bottom;
+  image-rendering: pixelated;
+}
+
+.city__far {
+  height: calc(100px * var(--city-px));
+  bottom: calc(14px * var(--city-px));
+  background-image: url("assets/city/city_far.png");
+  background-size: calc(384px * var(--city-px)) calc(100px * var(--city-px));
+  /* 遠いビルは少し霞ませる */
+  opacity: 0.9;
+  will-change: transform;
+}
+
+.city__near,
+.city__blink {
+  top: 0;
+  background-size: calc(384px * var(--city-px)) calc(120px * var(--city-px));
+}
+
+.city__near   { background-image: url("assets/city/city_near.png"); }
+.city__blink--a { background-image: url("assets/city/city_blink_a.png"); animation: blink 1.8s steps(1, end) infinite; }
+.city__blink--b { background-image: url("assets/city/city_blink_b.png"); animation: blink 9s steps(1, end) infinite 2s; }
+
+@keyframes blink {
+  0%   { opacity: 1; }
+  55%  { opacity: 0; }
+}
+
+/* ===== ページ一覧 ===== */
+.pages {
+  padding: 40px 20px 80px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.pages__title {
+  margin: 0 0 28px;
+  font-weight: normal;
+  font-size: 1.1rem;
+  letter-spacing: 0.4em;
+  text-align: center;
+  color: var(--warm);
+  opacity: 0.9;
+}
+
+.pages__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 28px;
+}
+
+/* 角が欠けたドット絵風の枠 (box-shadow で4辺を描く) */
+.card {
+  --edge: #3a4378;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 18px;
+  margin: 4px;
+  background: #121735;
+  color: var(--text);
+  text-decoration: none;
+  box-shadow:
+    0 -4px 0 0 var(--edge),
+    0 4px 0 0 var(--edge),
+    -4px 0 0 0 var(--edge),
+    4px 0 0 0 var(--edge);
+  transition: background 0.15s;
+}
+
+a.card:hover,
+a.card:focus-visible {
+  --edge: var(--warm);
+  background: #1a2048;
+  outline: none;
+}
+
+a.card:hover .card__arrow,
+a.card:focus-visible .card__arrow {
+  color: var(--warm);
+  transform: translateX(4px);
+}
+
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.card__no {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  letter-spacing: 0.2em;
+}
+
+.card__name {
+  font-size: 1.15rem;
+  letter-spacing: 0.18em;
+}
+
+.card__desc {
+  font-size: 0.82rem;
+  opacity: 0.7;
+  line-height: 1.6;
+}
+
+.card__arrow {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  transition: transform 0.15s, color 0.15s;
+}
+
+.card--soon {
+  opacity: 0.45;
+}
+
+/* サムネイル: 4枚の色面を高速で切り替えて「カット割り」っぽく */
+.card__thumb {
+  position: relative;
+  flex: none;
+  width: 112px;
+  height: 63px;
+  overflow: hidden;
+  background: #000;
+}
+
+.card__thumb--empty {
+  display: grid;
+  place-items: center;
+  background: #0d1130;
+  font-size: 1.4rem;
+  opacity: 0.6;
+}
+
+.thumb-cut {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: thumbcut 1.6s steps(1, end) infinite;
+}
+
+.thumb-cut--1 { background: linear-gradient(#f2a35e 0 40%, #6b3a6e 40% 62%, #1d1638 62%); animation-delay: 0s; }
+.thumb-cut--2 { background: linear-gradient(#9fd3ff 0 48%, #e8f6ff 48% 50%, #1e5a8c 50%); animation-delay: -1.2s; }
+.thumb-cut--3 { background: linear-gradient(90deg, #0d1233 0 20%, #f3d27a 20% 24%, #141a44 24% 55%, #9fb4ff 55% 58%, #0d1233 58%); animation-delay: -0.8s; }
+.thumb-cut--4 { background: linear-gradient(#b8d9c0 0 30%, #2e6b4a 30% 70%, #173a2a 70%); animation-delay: -0.4s; }
+
+@keyframes thumbcut {
+  0%   { opacity: 1; }
+  25%  { opacity: 0; }
+}
+
+.pages__foot {
+  margin: 56px 0 0;
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  opacity: 0.3;
+}
+
 /* ===== スマホ ===== */
 @media (max-width: 480px) {
+  :root { --city-px: 3; }
   .cat { --px: 6; }
   .cushion { width: calc(32px * 6 * 0.95); margin-top: -40px; height: 34px; }
   .note { font-size: 0.9rem; }
   .moon { width: 40px; height: 40px; box-shadow: -10px 6px 0 0 #f6e9b8; }
+  .card { gap: 12px; padding: 12px; }
+  .card__thumb { width: 84px; height: 48px; }
 }
 
 /* 動きを減らす設定の人には止めて表示 */
 @media (prefers-reduced-motion: reduce) {
-  .star--twinkle { animation: none; }
+  html { scroll-behavior: auto; }
+  .star--twinkle,
+  .scroll-hint__arrow,
+  .city__blink,
+  .thumb-cut { animation: none; }
+  .thumb-cut--1 { opacity: 1; }
 }
